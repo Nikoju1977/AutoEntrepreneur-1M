@@ -8,7 +8,7 @@ function wavBuffer(){const rate=16000,frames=rate/2,bytes=44+frames*2,b=Buffer.a
 async function run(){
  await check('50 domaines × 20 spécialités × 20 rôles × 50 méthodes et bibliothèques complètes',async()=>{
   const s=fs.readFileSync('assets/app.mjs','utf8');
-  const get=(v)=>{const m=s.match(new RegExp('const '+v+'="([^"]+)"\\.split\\("\\\\|"\\)'));assert(m,'No '+v);return m[1].split('|')};
+  const get=v=>{const line=s.split('\n').find(x=>x.startsWith('const '+v+'='));assert(line,'Missing '+v);const m=/^const [A-Z]+="([^"]+)"\.split\("\|"\);/.exec(line);assert(m,'Invalid array declaration '+v);return m[1].split('|')};
   const domains=get('SLUGS'),names=get('NAMES'),methods=get('METHODS'),roles=get('ROLES');
   assert.equal(domains.length,50);assert.equal(names.length,50);assert.equal(methods.length,50);assert.equal(new Set(methods).size,50);assert.equal(roles.length,20);assert.equal(new Set(domains).size,50);
   for(const slug of domains){assert(fs.existsSync('references/domaines/'+slug+'.md'),slug);for(let i=0;i<20;i++)assert(fs.existsSync('references/specialites/'+slug+'--'+String(i).padStart(2,'0')+'.md'),slug+' '+i)}
