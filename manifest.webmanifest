@@ -1,0 +1,20 @@
+{
+  "id": "./",
+  "name": "AutoEntrepreneur 1M — Studio agentique",
+  "short_name": "AE 1M",
+  "description": "Multi-agents et analyse multimédia locale pour auto-entrepreneurs",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#09121f",
+  "background_color": "#09121f",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

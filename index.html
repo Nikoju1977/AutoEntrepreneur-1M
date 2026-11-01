@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#09121f">
+<meta name="description" content="AutoEntrepreneur 1M : PWA de gestion d'entreprise, profils d'agents spécialisés et analyse multimédia locale.">
+<link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="./assets/app.css"><title>AutoEntrepreneur 1M — Studio agentique</title></head>
+<body><div class="shell"><header class="topbar"><div class="brand"><img src="./icons/icon.svg" alt="" width="44" height="44"><div><strong>AE<span>1M</span></strong><small>STUDIO AGENTIQUE · PWA</small></div></div>
+<div class="topright"><span id="onlineStatus" class="status-pill">● Local</span><button id="installButton" class="iconbtn" hidden>Installer</button></div></header>
+<section class="intro"><div><span class="eyebrow">WORKSPACE AUTONOME · VERSION GITHUB</span><h1>Un million de profils.<br><em>Une équipe de dix.</em></h1>
+<p>Chaque agent associe gestion d’entreprise, expertise métier et bibliothèque spécialisée. Importe des documents, audios, images et vidéos pour construire un dossier d’analyse partagé.</p></div>
+<div class="intro-right"><div class="stat"><b>1 000 000</b><span>Profils virtuels</span></div><div class="stat"><b id="activeCount">0 / 10</b><span>Agents actifs</span></div><div class="stat"><b id="fileCountTop">0</b><span>Fichiers</span></div></div></section>
+<nav class="tabs" aria-label="Navigation principale"><button class="tab active" data-tab="mission" aria-current="page">Mission</button><button class="tab" data-tab="files">Fichiers</button><button class="tab" data-tab="agents">Agents</button><button class="tab" data-tab="tools">Outils</button><button class="tab" data-tab="exports">Exports</button></nav>
+<main>
+<section class="tab-panel" id="tab-mission"><div class="panel"><div class="panel-heading"><span class="eyebrow">01 · ORCHESTRATION</span><h2>Une mission pour dix experts</h2>
+<p>Qualité, métrologie, SAV, finance, marketing, production, audiovisuel : décris le problème, l’objectif, les contraintes et les faits connus.</p></div>
+<label for="missionInput">Description du problème ou de la mission</label><textarea id="missionInput" rows="5" placeholder="Exemple : analyser une augmentation des rebuts de production et son impact sur la trésorerie, puis élaborer un plan d’actions correctives mesurable."></textarea>
+<div class="actionbar"><label class="inline-field" for="agentCount">Nombre d’agents <select id="agentCount"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option selected>10</option></select></label>
+<button id="autoSelect" class="btn secondary">Sélection automatique</button><button id="startMission" class="btn">Lancer la collaboration</button></div><div class="notice" id="missionNotice" role="status">Prêt à recevoir une mission.</div>
+<div class="summary-grid"><div><strong id="activeFiles">0</strong><span>Fichiers associés</span></div><div><strong id="activeMessages">0</strong><span>Messages de coopération</span></div><div><strong>13</strong><span>Manuels communs</span></div></div>
+<div id="missionResult" hidden><h3>Rapport multi-agents</h3><pre class="report" id="reportText"></pre></div>
+<p class="hint tiny">Attention : les agents sont des profils combinatoires appliquant des guides déterministes. Ils ne constituent pas dix modèles d’IA générative indépendants.</p></div></section>
+<section class="tab-panel" id="tab-files" hidden><div class="panel"><div class="panel-heading"><span class="eyebrow">02 · ATELIER MULTIMÉDIA</span><h2>Importer et analyser tes fichiers</h2><p>Audio, images, vidéos, texte, CSV, JSON, dossiers. Analyse locale sans transfert à un serveur ; les formats non reconnus restent accessibles en original.</p></div>
+<div class="dropzone" id="dropZone"><div class="dropicon">⇩</div><h3>Glisse tes fichiers ici</h3><p class="hint">Ou choisis des fichiers ou un dossier complet.</p>
+<div class="file-buttons"><button id="pickFiles" class="btn">Choisir des fichiers</button><button id="pickFolder" class="btn secondary">Importer un dossier</button><button id="clearFiles" class="btn tertiary">Vider</button></div>
+<input id="filesInput" type="file" multiple hidden><input id="folderInput" type="file" multiple webkitdirectory directory hidden></div>
+<div class="notice" id="importNotice" role="status">Aucun document chargé.</div><div class="summary-grid"><div><strong id="fileCount">0</strong><span>Fichiers</span></div><div><strong id="summarySize">0 o</strong><span>Volume</span></div><div><strong id="summaryDuration">0 s</strong><span>Audio/vidéo analysé</span></div></div>
+<div class="file-list" id="fileList">Aucun fichier importé.</div><div class="detail" id="fileDetail" hidden></div>
+<p class="tiny hint">Audio : durée, fréquence, RMS, crêtes approximatives et écrêtage d’échantillons ; ce n’est ni une analyse LUFS ni True Peak. Limite de décodage automatique : 80 Mo. Les pièces ne sont pas conservées après fermeture de la session.</p></div></section>
+<section class="tab-panel" id="tab-agents" hidden><div class="panel"><div class="panel-heading"><span class="eyebrow">03 · BIBLIOTHÈQUES & PROFILS</span><h2>Ton équipe interopérable</h2><p>50 disciplines × 20 spécialisations × 20 rôles × 50 méthodes : 1 000 000 combinaisons. Chaque profil a 13 manuels de gestion et des guides métier.</p></div>
+<div class="actionbar"><label class="inline-field" for="agentIdInput">Ajouter par ID <input id="agentIdInput" type="text" value="AG-0000001" placeholder="AG-0000001"></label><button id="addAgent" class="btn secondary">Ajouter</button><button id="clearAgents" class="btn tertiary">Effacer la sélection</button></div><div class="agents-grid" id="agentsList">Aucun profil sélectionné.</div></div></section>
+<section class="tab-panel" id="tab-tools" hidden><div class="panel"><div class="panel-heading"><span class="eyebrow">04 · INSTRUMENTS DE DÉCISION</span><h2>Outils métiers</h2><p>Calculs indicatifs pour décider et documenter, à confirmer sur données vérifiées.</p></div>
+<div class="tool-grid"><article class="toolbox"><h3>Analyse de Pareto — non-conformités</h3><p class="hint tiny">Une catégorie par ligne : nom;nombre</p><label for="paretoInput">Données</label><textarea id="paretoInput" rows="7">Défaut dimensionnel;32
+Retard fournisseur;17
+Rayure;12
+Emballage;6
+Autre;3</textarea><button id="calculatePareto" class="btn">Calculer</button><pre class="report" id="paretoOutput"></pre></article>
+<article class="toolbox"><h3>Simulateur de trésorerie simplifié</h3><div class="inputs-grid">
+<label>Chiffre d’affaires (€)<input id="bRevenue" type="number" value="5000" min="0" step="0.01"></label>
+<label>Coûts variables (€)<input id="bVariable" type="number" value="1000" min="0" step="0.01"></label>
+<label>Charges fixes (€)<input id="bFixed" type="number" value="650" min="0" step="0.01"></label>
+<label>Cotisations estimées (€)<input id="bContrib" type="number" value="1000" min="0" step="0.01"></label>
+<label>Réserve (€)<input id="bReserve" type="number" value="250" min="0" step="0.01"></label></div>
+<button id="calculateBusiness" class="btn">Simuler</button><div class="notice" id="businessOutput"></div></article></div></div></section>
+<section class="tab-panel" id="tab-exports" hidden><div class="panel"><div class="panel-heading"><span class="eyebrow">05 · LIVRABLES</span><h2>Exporter le dossier</h2><p>Rapport, inventaire, mesures, exports structurés et récupération des originaux. Une conversion de fichier multimédia n’est proposée que si le navigateur la prend en charge.</p></div>
+<div class="exportgrid"><article class="exportbox"><h3>Rapport & données</h3><label for="exportFormat">Format</label><select id="exportFormat"><option value="json">JSON</option><option value="md">Markdown</option><option value="csv">CSV</option><option value="tsv">TSV</option><option value="xml">XML</option><option value="yaml">YAML</option><option value="txt">TXT</option><option value="html">HTML</option></select>
+<div class="actionbar"><button id="exportReport">Exporter</button><button id="printPdf" class="secondary">PDF / imprimer</button></div><div class="actionbar"><button class="secondary" data-quick-export="json">JSON</button><button class="secondary" data-quick-export="csv">CSV</button><button class="secondary" data-quick-export="md">Markdown</button></div></article>
+<article class="exportbox"><h3>Dossier ZIP</h3><p>Rapport, inventaire et analyses au format ZIP standard (sans compression, données lisibles).</p><label class="check"><input type="checkbox" id="includeOriginals" checked> Inclure les fichiers originaux</label><button id="exportZip">Créer le ZIP</button><p class="tiny hint">Pour éviter une saturation mémoire, volume cumulé limité à 400 Mo en cas d’inclusion des originaux.</p></article></div></div></section>
+</main><footer><span>AutoEntrepreneur 1M · PWA statique · Données dans la session du navigateur</span><span>Guide professionnel à valider avant décision engageante</span></footer><div id="toast" class="toast" hidden role="status"></div></div>
+<script type="module" src="./assets/app.mjs"></script></body></html>
