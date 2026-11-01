@@ -180,4 +180,4 @@ async function run(){
  await browser.close();
  console.log("COMPLETE QA",report.length,"passed");
 }
-run().catch(e=>{console.error(e.stack);process.exitCode=1});
+run().catch(e=>{console.error(e.stack);process.exit(1)});
