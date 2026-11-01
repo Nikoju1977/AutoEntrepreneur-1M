@@ -1,0 +1,29 @@
+name: QA complet AutoEntrepreneur 1M
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  qa-complet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser tooling
+        run: |
+          npm install --no-save playwright
+          npx playwright install chromium
+      - name: Validate source syntax
+        run: |
+          node --check assets/app.mjs
+          node --check sw.js
+          node --check tests/full-qa.cjs
+      - name: Test full application
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/ae1m-http.log 2>&1 &
+          node tests/full-qa.cjs
