@@ -50,9 +50,32 @@ function reportData(){return {generated:new Date().toISOString(),mission:state.r
 function reportText(){return state.report?.lines.join("\n")||"Aucun rapport de mission. Consultez l'espace administratif pour votre registre."}
 function exportReport(fmt){const o=reportData();if(fmt==="json")return download(JSON.stringify(o,null,2),"autoentrepreneur-sauvegarde.json","application/json");if(fmt==="csv"||fmt==="tsv"){const sep=fmt==="csv"?";":"\t";return download([["Date","Type","Description","Montant"].join(sep),...state.admin.ledger.map(r=>[r.date,r.type,r.label,r.amount].map(csvCell).join(sep))].join("\n"),"livre-recettes."+fmt,"text/csv")}if(fmt==="xml")return download("<rapport><date>"+safe(o.generated)+"</date><texte>"+safe(reportText())+"</texte></rapport>","rapport.xml","application/xml");if(fmt==="yaml")return download("generated: "+o.generated+"\nreport: |\n"+reportText().split("\n").map(x=>"  "+x).join("\n"),"rapport.yaml","text/yaml");if(fmt==="html")return download("<!doctype html><meta charset=utf-8><title>Rapport</title><pre>"+safe(reportText())+"</pre>","rapport.html","text/html");return download(reportText(),"rapport."+(fmt==="txt"?"txt":"md"))}
 const crcTable=Array.from({length:256},(_,n)=>{for(let k=0;k<8;k++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0});
-function makeZip(entries){const enc=new TextEncoder(),parts=[],dir=[];let offset=0;function u16(n){return [n&255,(n>>>8)&255]}function u32(n){return [n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255]}
-for(const [name,src] of entries){const body=typeof src==="string"?enc.encode(src):src;const fn=enc.encode(name);let crc=0xffffffff;for(const b of body)crc=crcTable[(crc^b)&255]^(crc>>>8);crc=(crc^0xffffffff)>>>0;const local=new Uint8Array([...u32(0x04034b50),20,0,0,0,0,0,0,0,0,...u32(crc),...u32(body.length),...u32(body.length),...u16(fn.length),0,0,...fn]);parts.push(local,body);dir.push(new Uint8Array([...u32(0x02014b50),20,0,20,0,0,0,0,0,0,0,0,...u32(crc),...u32(body.length),...u32(body.length),...u16(fn.length),0,0,0,0,0,0,0,0,0,0,0,0,...u32(offset),...fn]));offset+=local.length+body.length}
-const dirs=dir.reduce((n,b)=>n+b.length,0);return new Blob([...parts,...dir,new Uint8Array([...u32(0x06054b50),0,0,0,0,...u16(dir.length),...u16(dir.length),...u32(dirs),...u32(offset),0,0])],{type:"application/zip"})}
+function makeZip(entries){
+const enc=new TextEncoder(),parts=[],central=[];let offset=0,totalEntries=0;
+const write=(view,at,value,size)=>{if(size===2)view.setUint16(at,value,true);else view.setUint32(at,value>>>0,true)};
+for(const [name,source] of entries){
+  const bytes=typeof source==="string"?enc.encode(source):source;
+  const content=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes);
+  const filename=enc.encode(name);
+  if(filename.length>65535||content.byteLength>0xffffffff||offset>0xffffffff)throw Error("Entrée ZIP trop grande");
+  let crc=0xffffffff;for(const b of content)crc=crcTable[(crc^b)&255]^(crc>>>8);crc=(crc^0xffffffff)>>>0;
+  const local=new Uint8Array(30+filename.length),lv=new DataView(local.buffer);
+  write(lv,0,0x04034b50,4);write(lv,4,20,2);write(lv,6,0x0800,2);write(lv,8,0,2);
+  write(lv,14,crc,4);write(lv,18,content.length,4);write(lv,22,content.length,4);write(lv,26,filename.length,2);
+  local.set(filename,30);
+  const record=new Uint8Array(46+filename.length),cv=new DataView(record.buffer);
+  write(cv,0,0x02014b50,4);write(cv,4,20,2);write(cv,6,20,2);write(cv,8,0x0800,2);write(cv,10,0,2);
+  write(cv,16,crc,4);write(cv,20,content.length,4);write(cv,24,content.length,4);
+  write(cv,28,filename.length,2);write(cv,42,offset,4);record.set(filename,46);
+  parts.push(local,content);central.push(record);
+  offset+=local.length+content.length;totalEntries++;
+}
+const cdSize=central.reduce((sum,b)=>sum+b.length,0);
+if(totalEntries>65535||offset+cdSize>0xffffffff)throw Error("ZIP64 non pris en charge");
+const end=new Uint8Array(22),ev=new DataView(end.buffer);
+write(ev,0,0x06054b50,4);write(ev,8,totalEntries,2);write(ev,10,totalEntries,2);write(ev,12,cdSize,4);write(ev,16,offset,4);
+return new Blob([...parts,...central,end],{type:"application/zip"});
+}
 async function exportZip(){try{const entries=[["rapport.txt",new TextEncoder().encode(reportText())],["sauvegarde.json",new TextEncoder().encode(JSON.stringify(reportData(),null,2))]];if(el("includeOriginals").checked){const size=state.files.reduce((n,f)=>n+f.size,0);if(size>200*1024*1024)throw Error("Pour éviter une panne mémoire, limiter les originaux du ZIP à 200 Mo.");for(const f of state.files){const source=state.fileMap.get(f.id);if(source)entries.push(["originaux/"+f.name.replace(/[\/\\:*?"<>|]/g,"_"),new Uint8Array(await source.arrayBuffer())])}}download(makeZip(entries),"AutoEntrepreneur_1M.zip","application/zip");notify("Archive ZIP générée")}catch(e){notify("ZIP impossible : "+e.message,true)}}
 function typeFile(f){const ext=f.name.split(".").pop().toLowerCase();return /\.(wav|mp3|flac|ogg|aac|m4a)$/i.test(f.name)?"audio":/\.(mp4|mkv|mov|webm)$/i.test(f.name)?"video":/\.(png|jpeg|jpg|webp|gif|svg)$/i.test(f.name)?"image":/\.(txt|csv|json|md|xml|yaml|html)$/i.test(f.name)?"texte":ext.toUpperCase()}
 async function analyzeFile(f){const t=typeFile(f),item={id:"F-"+Math.random().toString(36).slice(2,10),name:f.webkitRelativePath||f.name,size:f.size,type:t,analysis:"Fichier original conservé localement pendant cette session"};if(t==="audio"&&f.size<80*1048576){try{const context=new (window.AudioContext||window.webkitAudioContext)(),buf=await context.decodeAudioData(await f.arrayBuffer());let sum=0,peak=0,total=0,clipped=0;const step=Math.max(1,Math.ceil(buf.length/1200000));for(let c=0;c<buf.numberOfChannels;c++){let data=buf.getChannelData(c);for(let i=0;i<data.length;i+=step){const a=Math.abs(data[i]);sum+=a*a;peak=Math.max(peak,a);total++;if(a>=0.999)clipped++}}await context.close();const rms=Math.sqrt(sum/Math.max(total,1));item.analysis="Durée "+buf.duration.toFixed(1)+" s · "+buf.sampleRate+" Hz · "+buf.numberOfChannels+" canal(aux) · crête "+(peak?20*Math.log10(peak):-Infinity).toFixed(1)+" dBFS · RMS "+(rms?20*Math.log10(rms):-Infinity).toFixed(1)+" dBFS · échantillons proches du clipping "+(100*clipped/total).toFixed(3)+"% (mesure échantillonnée).";item.seconds=buf.duration}catch{item.analysis="Décodage non pris en charge par ce navigateur ; original conservé."}}else if(t==="image"){try{const image=await createImageBitmap(f);item.analysis=image.width+" × "+image.height+" px";image.close()}catch{item.analysis="Image importée"}}else if(t==="texte"&&f.size<=1048576){try{const str=await f.text();item.analysis="Texte lisible : "+str.length+" caractères";item.preview=str.slice(0,3000)}catch{}}
