@@ -1,5 +1,5 @@
 /* AutoEntrepreneur 1M — offline-first PWA v3, gracefully handles missing assets */
-const CACHE="ae1m-v3-20261101";
+const CACHE="ae1m-v4-ziprepair-20261101";
 const CORE=["./","./index.html","./manifest.webmanifest","./assets/app.css","./assets/app.mjs","./icons/icon.svg"];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(async cache=>{
@@ -19,5 +19,10 @@ self.addEventListener("fetch",event=>{
    event.respondWith(fetch(req).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(c=>c.put("./index.html",copy))}return response}).catch(async()=>(await caches.match("./index.html"))||new Response("Application hors ligne",{status:503})));
    return;
  }
- event.respondWith(caches.match(req).then(saved=>saved||fetch(req).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(c=>c.put(req,copy))}return response})));
+ const fresh=/\/(assets\/app\.(mjs|css)|manifest\.webmanifest|sw\.js)$/.test(new URL(req.url).pathname);
+ if(fresh){
+   event.respondWith(fetch(req).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(c=>c.put(req,copy))}return response}).catch(async()=>await caches.match(req)||new Response("Ressource indisponible hors ligne",{status:503})));
+ }else{
+   event.respondWith(caches.match(req).then(saved=>saved||fetch(req).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(c=>c.put(req,copy))}return response})));
+ }
 });
