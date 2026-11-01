@@ -1,0 +1,32 @@
+name: Validate AutoEntrepreneur PWA
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check standalone JavaScript
+        run: |
+          node --check assets/app.mjs
+          node --check sw.js
+      - name: Check app assets and official portals
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const html=fs.readFileSync('index.html','utf8');
+          const script=fs.readFileSync('assets/app.mjs','utf8');
+          const manifest=JSON.parse(fs.readFileSync('manifest.webmanifest','utf8'));
+          for(const path of ['assets/app.mjs','assets/app.css','icons/icon.svg','sw.js','manifest.webmanifest']) assert(fs.existsSync(path),path);
+          for(const id of ['missionInput','autoSelect','startMission','filesInput','folderInput','exportReport','exportZip','calculatePareto','calculateBusiness']) assert(html.includes('id="'+id+'"'), 'Missing '+id);
+          for(const domain of ['www.impots.gouv.fr','autoentrepreneur.urssaf.fr','formalites.entreprises.gouv.fr','entreprendre.service-public.gouv.fr']) assert(script.includes(domain),'Missing '+domain);
+          assert(!script.includes("from './core.mjs'"),'Old broken module import remains');
+          assert(manifest.icons.every(x=>fs.existsSync(x.src.replace(/^\.\//,''))),'Missing icons');
+          assert(script.includes('1M v3') && script.includes('function injectAdmin'));
+          console.log('PWA source smoke checks: OK');
+          JS
