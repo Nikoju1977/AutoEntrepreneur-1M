@@ -44,7 +44,7 @@ jobs:
             await page.getByRole('button',{name:/Mission/}).click();
             await page.locator('#missionInput').fill('Non-conformité qualité, défaut, impôts et URSSAF');
             await page.locator('#autoSelect').click();
-            assert.equal(await page.locator('.agent-card').count(),0); // hidden agent panel, dynamic elsewhere
+            assert((await page.locator('.agent-card').count())>=4,'Agents not generated');
             await page.locator('#startMission').click();
             assert(await page.locator('#missionResult').isVisible());
             await page.getByRole('button',{name:/Fichiers/}).click();
