@@ -1,6 +1,6 @@
 /* AutoEntrepreneur 1M — offline-first PWA v3, gracefully handles missing assets */
-const CACHE="ae1m-v5-studio-ui-20261122";
-const CORE=["./","./index.html","./manifest.webmanifest","./assets/app.css","./assets/app.mjs","./icons/icon.svg"];
+const CACHE="ae1m-v6-studio-core-20261122";
+const CORE=["./","./index.html","./manifest.webmanifest","./assets/app.css","./assets/app.mjs","./studio-niko-core.js","./icons/icon.svg"];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(async cache=>{
    const results=await Promise.allSettled(CORE.map(async path=>{const response=await fetch(new Request(path,{cache:"reload"}));if(response.ok)await cache.put(path,response)}));
