@@ -126,7 +126,17 @@ for(const id of ["filesInput","folderInput"])el(id).onchange=e=>{importFiles(Arr
 const dz=el("dropZone");dz.onclick=e=>{if(!e.target.closest("button"))el("filesInput").click()};dz.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();el("filesInput").click()}};dz.ondragover=e=>{e.preventDefault()};dz.ondrop=e=>{e.preventDefault();importFiles(Array.from(e.dataTransfer.files||[])).catch(x=>notify(x.message,true))};
 el("clearFiles").onclick=()=>{state.files=[];state.fileMap.clear();el("fileDetail").hidden=true;renderFiles();renderCounts()};
 el("calculatePareto").onclick=pareto;el("calculateBusiness").onclick=cash;
-el("exportReport").onclick=()=>exportReport(el("exportFormat").value);el("exportZip").onclick=()=>exportZip();el("printPdf").onclick=()=>{const w=window.open("","_blank");if(!w){notify("Autorisez les fenêtres pour imprimer",true);return}w.document.write("<pre>"+safe(reportText())+"</pre>");w.document.close();w.focus();w.print()};
+el("exportReport").onclick=()=>exportReport(el("exportFormat").value);el("exportZip").onclick=()=>exportZip();el("printPdf").onclick=()=>{
+  const w=window.open("","_blank");
+  if(!w){notify("Autorisez les fenêtres pour imprimer",true);return}
+  const doc=w.document;
+  doc.title="Rapport — AutoEntrepreneur 1M";
+  const pre=doc.createElement("pre");
+  pre.textContent=reportText();
+  pre.style.cssText="white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.5 system-ui,sans-serif;padding:20px;margin:0;color:#111";
+  doc.body.replaceChildren(pre);
+  w.focus();w.print()
+};
 document.querySelectorAll("[data-quick-export]").forEach(b=>b.onclick=()=>exportReport(b.dataset.quickExport));
 const updateNet=()=>el("onlineStatus").textContent=navigator.onLine?"● Local / connecté":"● Hors ligne";updateNet();addEventListener("online",updateNet);addEventListener("offline",updateNet);
 let install;addEventListener("beforeinstallprompt",e=>{e.preventDefault();install=e;el("installButton").hidden=false});el("installButton").onclick=()=>{if(install)install.prompt()};
